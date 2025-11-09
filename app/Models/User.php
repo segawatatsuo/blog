@@ -10,7 +10,9 @@ use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasApiTokens;
+    use HasFactory;
+    use Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -42,4 +44,25 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+
+    // Articleとの一対多のリレーションメソッドを定義
+    public function articles()
+    {
+        return $this->hasMany(Article::class);
+    }
+
+    public function bookmarks()
+    {
+        return $this->hasMany(Bookmark::class);
+    }
+
+    public function bookmark_articles()
+    {
+        return $this->belongsToMany(Article::class, 'bookmarks', 'user_id', 'article_id');
+    }
+
+    public function is_bookmark($articleId)
+    {
+        return $this->bookmarks()->where('article_id', $articleId)->exists();
+    }
 }

@@ -12,7 +12,8 @@ class ArticleController extends Controller
      */
     public function index()
     {
-        $articles = Article::all();
+        //$articles = Article::all();
+        $articles = Article::orderBy('created_at', 'desc')->paginate(10);
         $data = ['articles' => $articles];
         return view('articles.index', $data);
     }
@@ -37,6 +38,7 @@ class ArticleController extends Controller
             'body' => 'required'
         ]);
         $article = new Article();
+        $article->user_id = \Auth::id(); // 一行追加
         $article->title = $request->title;
         $article->body = $request->body;
         $article->save();
@@ -58,6 +60,7 @@ class ArticleController extends Controller
      */
     public function edit(Article $article)
     {
+        $this->authorize($article);
         $data = ['article' => $article];
         return view('articles.edit', $data);
     }
@@ -67,6 +70,7 @@ class ArticleController extends Controller
      */
     public function update(Request $request, Article $article)
     {
+        $this->authorize($article);
         $this->validate($request, [
             'title' => 'required|max:255',
             'body' => 'required'
@@ -82,7 +86,16 @@ class ArticleController extends Controller
      */
     public function destroy(Article $article)
     {
+        $this->authorize($article);
         $article->delete();
         return redirect(route('articles.index'));
+    }
+    public function bookmark_articles()
+    {
+        $articles = \Auth::user()->bookmark_articles()->orderBy('created_at', 'desc')->paginate(10);
+        $data = [
+            'articles' => $articles,
+        ];
+        return view('articles.bookmarks', $data);
     }
 }
